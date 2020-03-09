@@ -15,6 +15,11 @@ namespace DynamicParameterLibrary.Security
 {
     public class RunAuditActionItem
     {
+        // * the function of this class is to audit user-initiated executions and save the data to the database. 
+        // * data stored includes username, what was executed, when, and what values were executed on. 
+        // * ConnectionManager contains code that establishes and manages connections to the relevant database and reporting servers.
+        // * this class is instantiated prior to actionitem execution, writes to the database just prior to execution, and updates a success flag 
+        //      upon successful execution. 
 
         #region PRIVATE MEMBERS
 
@@ -34,7 +39,7 @@ namespace DynamicParameterLibrary.Security
 
         public RunAuditActionItem(ActionItem ai, ConnectionManager ConnManager)
         {
-            this.actionItemID = int.Parse(ai.ActionItemID);
+            this.actionItemID = int.Parse(ai.ActionItemID); // ai.ActionItemID is a string, so must be converted. 
             this.actionItemName = ai.ActionItemName;
             this.actionItemQuery = ai.ProcedureOriginal;
             this.actionTypeID = ai.ActionTypeID;
@@ -106,8 +111,8 @@ namespace DynamicParameterLibrary.Security
         {
             try
             {
+                // check to see if audit logging is turned on ... if not, exit
                 bool auditON = Properties.Settings.Default.AuditOn;
-
                 if (!auditON) return;
                 if (!Properties.Settings.Default.AIDesignAuditOn && this.actionTypeID == (int)Enums.ActionTypes.AIDesign) return;
                 DataLayer dl = new DataLayer((int)Enums.ActionTypes.AIDesign, conman);

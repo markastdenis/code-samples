@@ -12,6 +12,7 @@ namespace DynamicParameterLibrary.Security
     {
 
         // * the function of this class is to write info from any errors encountered during execution of project code to the database. 
+        // * this class is called only by the ErrorManager, which in turn is used throughout the project code. 
         // * ConnectionManager contains code that establishes and manages connections to the relevant database and reporting servers.
         // * fauxMessage and fauxStackTrace refer to error messages and stacktraces that are not system generated, but rather created by code. 
 

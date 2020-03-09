@@ -15,6 +15,10 @@ namespace DynamicParameterLibrary.Security
     public static class ErrorManager
     {
 
+        // * this class is used exclusively throughout the project code whenever errors occur, and its function is to create an erroractionitem 
+        //      and store the error info to the database. 
+        // * ConnectionManager contains code that establishes and manages connections to the relevant database and reporting servers.
+
         public static void WriteErrorRecord(Exception ex, ActionItem ai, ConnectionManager ConnManager)
         {
             ErrorActionItem err = new ErrorActionItem(ex, ai, ConnManager);
