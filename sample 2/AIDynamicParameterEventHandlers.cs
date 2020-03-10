@@ -14,6 +14,10 @@ namespace DynamicParameterLibrary.Management
 {
     public class AIDynamicParameterEventHandlers
     {
+        // the function of this class is to attach event handlers to dynamically generated form controls that take user input
+        //      - user input is saved to the relevant dynamic parameter object
+        // the class takes in a button (to initiate user-initiated code execution) and a list of items and their associated controls and binds them together
+        // 
 
         #region PRIVATE MEMBERS
 
@@ -50,7 +54,7 @@ namespace DynamicParameterLibrary.Management
 
         public void dpComboBoxTextChanged(object sender, EventArgs e)
         {
-            int actionItemID;
+            // this matches text input of a combobox against list items and selects a match
             DynamicParameter dp;
             ComboBox cbo = (ComboBox)sender;
             dp = (DynamicParameter)cbo.Tag;
@@ -75,37 +79,15 @@ namespace DynamicParameterLibrary.Management
                     dp.ParameterValue = string.Empty;
                     dp.SelectedQueryDataListObjects = new List<ListObject>();
                     cbo.ResetText();
-
-                    //code change mar. 05 2018 below
                     this.dpListSelectionChanged(sender, null);
                 }
-                //////////////////////else // this is new code to fix matts issue.....hes such a combobox niggly
-                //////////////////////{
-                //////////////////////    ListObject lo = new ListObject();
-                //////////////////////    string compareFullText = cbo.Text;
-                //////////////////////    int compareFullIndex = cbo.FindStringExact(compareFullText);
-                //////////////////////    if (compareFullText.Length > 0)
-                //////////////////////    {
-                //////////////////////        for (int i = 0; i <= cbo.Items.Count - 1; i++)
-                //////////////////////        {
-                //////////////////////            lo = (ListObject)cbo.Items[i];
-                //////////////////////            if (lo.DisplayValue == compareFullText)
-                //////////////////////            {
-                //////////////////////                cbo.SelectedItem = lo;
-                //////////////////////                cbo.SelectedText = lo.DisplayValue;
-                //////////////////////            }
-                //////////////////////        }
-                //////////////////////        //cbo.SelectedIndex = compareFullIndex;
-                //////////////////////    }
-                //////////////////////}
-
-
-                //this.textIndexIndexItemSelectedItem.AppendLine("ComboBoxText: " + compareText + ",  IndexofMatch: " + compareIndex.ToString() + ",  IndexItemName:  " + indexItemName);
                 SetGoButtonStatus(GetSelectedActionItem(dp.ActionItemID));
             }
         }
         public void dpListSelectionChanged(object sender, EventArgs e)
         {
+            // this handles selection changes for both comboboxes and listboxes
+            //      - though nothing happens when initializing
             switch (sender.GetType().ToString())
             {
                 case "System.Windows.Forms.ComboBox":
@@ -123,6 +105,7 @@ namespace DynamicParameterLibrary.Management
                         }
                         else
                         {
+                            // load the combobox selection into the dynamic parameter object
                             ListObject mylo = (ListObject)cbo.SelectedItem;
                             dp_cbo.SelectedQueryDataListObjects = new List<ListObject>();
                             dp_cbo.SelectedQueryDataListObjects.Add(mylo);
@@ -138,6 +121,7 @@ namespace DynamicParameterLibrary.Management
                             dp_cbo.ParameterValueDisplayValue = mylo.DisplayValue.ToString();
                         }
                     }
+                    // HIDE THIS LINE FOR SAMPLE!!
                     if (dp_cbo.DependencyChildren.Count > 0)
                     {
                         dp_cbo.LoadParameterQueryDataForDependencyChildren();
@@ -158,24 +142,15 @@ namespace DynamicParameterLibrary.Management
                         {
                             if (dp_lb.IsMultiSelect)
                             {
+                                // if multiselect, need to load list of selected list objects to dynamic parameter object
+                                //     and add to a selection-only display list, if used
                                 dp_lb.SelectedQueryDataListObjects = new List<ListObject>();
                                 foreach (object item in lb.SelectedItems)
                                 {
                                     ListObject mylo = (ListObject)item;
                                     dp_lb.SelectedQueryDataListObjects.Add(mylo);
                                 }
-                                //string paramList = string.Empty;
-                                //string displayList = string.Empty;
                                 LoadMultiSelectionParameterAndDisplayValues(dp_lb);
-                                //dp_lb.ParameterValue = paramList;
-                                ////if (dp_lb.UsesCurrentApplicationUserName) dp_lb.ParameterValue = displayList;
-                                //dp_lb.ParameterValueDisplayValue = displayList;
-
-                                //dp_lb.ParameterValue = this.GetIDListString(dp_lb.SelectedQueryDataListObjects);
-                                //dp_lb.ParameterValueDisplayValue = this.GetSelectedItemsDisplayString(dp_lb.SelectedQueryDataListObjects);
-                                //LoadMultiSelectionParameterValue(dp_lb.SelectedQueryDataListObjects, dp_lb.ParameterValue, dp_lb.ParameterValueDisplayValue);
-                                //string myname = "";
-                                //dp_lb.SelectedQueryDataListObjects.Add((ListObject)lb.SelectedItem);
                             }
                             else
                             {
@@ -198,124 +173,28 @@ namespace DynamicParameterLibrary.Management
                     break;
 
             }
-            //////////////////////////////////SetGoButtonStatus();
         }
+        
+// REMOVE THESE TWO METHODS!!
         public void dpComboBoxOpened(object sender, EventArgs e)
         {
             ComboBox cbo = (ComboBox)sender;
-            //cbo.AutoCompleteMode = System.Windows.Forms.AutoCompleteMode.None;
             cbo.AutoCompleteSource = System.Windows.Forms.AutoCompleteSource.None; ;
         }
         public void dbComboBoxClosed(object sender, EventArgs e)
         {
             ComboBox cbo = (ComboBox)sender;
-            //cbo.AutoCompleteMode = System.Windows.Forms.AutoCompleteMode.SuggestAppend;
             cbo.AutoCompleteSource = System.Windows.Forms.AutoCompleteSource.ListItems;
         }
+        
+        
         public void dbComboBoxLostFocus(object sender, EventArgs e)
         {
+            // this ensures that a test for valid text input is done
             ComboBox cbo = (ComboBox)sender;
             string compareFullText = cbo.Text;
             int compareFullIndex = cbo.FindStringExact(compareFullText);
             if (compareFullIndex > -1 && cbo.SelectedIndex == -1) cbo.SelectedIndex = compareFullIndex;
-        }
-        private void LoadMultiSelectionParameterAndDisplayValues(DynamicParameter dp)
-        {
-
-            StringBuilder sbParameterlist = new StringBuilder();
-            StringBuilder sbDisplayList = new StringBuilder();
-            List<ListObject> loList = dp.SelectedQueryDataListObjects;
-            if (dp.MultiSelectionDisplayListBox != null)  dp.MultiSelectionDisplayListBox.Items.Clear();
-
-            for (int i = 0; i <= loList.Count - 1; i++)
-            {
-                ListObject lo = loList.ElementAt(i);
-                // this might be where i actually want to add the code to load display control..seems like more appropriate
-                if (dp.MultiSelectionDisplayListBox != null) dp.MultiSelectionDisplayListBox.Items.Add(lo);
-
-                if (i < loList.Count - 1)
-                {
-                    switch (dp.DataTypeID)
-                    {
-                        case ((int)Enums.DataTypes.Int):
-                            sbParameterlist.Append(lo.IDValue.ToString() + ",");
-                            break;
-                        //case ((int)Enums.DataTypes.NVarchar):
-                        //    sbParameterlist.Append("'" + lo.DisplayValue + "',");
-                        //    break;
-                        //case ((int)Enums.DataTypes.DateTime):
-                        //    sbParameterlist.Append("'" + lo.DisplayValue + "',");
-                        //    break;
-
-                        default:
-                            sbParameterlist.Append(lo.DisplayValue + ",");
-                            break;
-                    }
-                    sbDisplayList.Append(lo.DisplayValue + ", ");
-                    //if (dp.DataTypeID == (int)Enums.DataTypes.Int)
-                    //{
-                    //    sbParameterlist.Append(lo.IDValue.ToString() + ", ");
-                    //}
-                    //else
-                    //sbIDlist.Append(lo.IDValue.ToString() + ",");
-                }
-                else
-                {
-                    switch (dp.DataTypeID)
-                    {
-                        case ((int)Enums.DataTypes.Int):
-                            sbParameterlist.Append(lo.IDValue.ToString());
-                            break;
-                        //case ((int)Enums.DataTypes.NVarchar):
-                        //    sbParameterlist.Append("'" + lo.DisplayValue + "'");
-                        //    break;
-                        //case ((int)Enums.DataTypes.DateTime):
-                        //    sbParameterlist.Append("'" + lo.DisplayValue + "'");
-                        //    break;
-
-                        default:
-                            sbParameterlist.Append(lo.DisplayValue);
-                            break;
-                    }
-                    sbDisplayList.Append(lo.DisplayValue);
-                }
-            }
-            dp.ParameterValue = sbParameterlist.ToString();
-            dp.ParameterValueDisplayValue = sbDisplayList.ToString();
-        }
-        private string GetIDListString(List<ListObject> loList)
-        {
-            StringBuilder sb = new StringBuilder();
-            for (int i = 0; i <= loList.Count - 1; i++)
-            {
-                ListObject lo = loList.ElementAt(i);
-                if (i < loList.Count - 1)
-                {
-                    sb.Append(lo.IDValue.ToString() + ",");
-                }
-                else
-                {
-                    sb.Append(lo.IDValue.ToString());
-                }
-            }
-            return sb.ToString();
-        }
-        private string GetSelectedItemsDisplayString(List<ListObject> loList)
-        {
-            StringBuilder sb = new StringBuilder();
-            for (int i = 0; i <= loList.Count - 1; i++)
-            {
-                ListObject lo = loList.ElementAt(i);
-                if (i < loList.Count - 1)
-                {
-                    sb.Append(lo.DisplayValue + ", ");
-                }
-                else
-                {
-                    sb.Append(lo.DisplayValue);
-                }
-            }
-            return sb.ToString();
         }
         public void dpCheckedChanged(object sender, EventArgs e)
         {
@@ -363,6 +242,7 @@ namespace DynamicParameterLibrary.Management
         }
         public void dpControlGotFocus(object sender, EventArgs e)
         {
+            // this basically highlights control contents when it receives focus
             switch (sender.GetType().ToString())
             {
                 case "System.Windows.Forms.NumericUpDown":
@@ -371,30 +251,124 @@ namespace DynamicParameterLibrary.Management
                     break;
                 case "System.Windows.Forms.TextBox":
                     TextBox tb = (TextBox)sender;
-                    //DynamicParameter dp_tb = (DynamicParameter)tb.Tag;
                     tb.SelectAll();
-                    //if (!dp_rb.IsInitializing) dp_rb.ParameterValue = rb.Checked.ToString();
                     break;
                 default:
                     break;
             }
         }
-        private void SetGoButtonStatus(ActionItem ai)
+
+        #endregion  PARAMETER EVENT HANDLERS
+
+        #region PRIVATE METHODS
+
+        private ActionItem GetSelectedActionItem(string actionitemID)
         {
+            //returns item from list from passed id
+            ActionItem AI = aiList.Find(item => item.ActionItemID == actionitemID);
+            return AI;
+        }
+
+        public void SetGoButtonStatus(ActionItem ai, Button button)
+        {
+            // checks an item to see if required parameters are fulfilled
+            // if so, the execute button is shown
             bool isVisible = true;
             foreach (DynamicParameter dp in ai.DynamicParameterList)
             {
                 if (!dp.IsFulfilled) isVisible = false;
             }
-            goButton.Visible = isVisible;
+            button.Visible = isVisible;
         }
-        private ActionItem GetSelectedActionItem(string actionitemID)
+        private void SetGoButtonStatus(ActionItem ai)
         {
-            ActionItem AI = aiList.Find(item => item.ActionItemID == actionitemID);
-            return AI;
+            SetGoButtonStatus(ai, goButton);
+        }
+        
+        // REMOVE BELOW TWO METHODS
+        private string GetIDListString(List<ListObject> loList)
+        {
+            StringBuilder sb = new StringBuilder();
+            for (int i = 0; i <= loList.Count - 1; i++)
+            {
+                ListObject lo = loList.ElementAt(i);
+                if (i < loList.Count - 1)
+                {
+                    sb.Append(lo.IDValue.ToString() + ",");
+                }
+                else
+                {
+                    sb.Append(lo.IDValue.ToString());
+                }
+            }
+            return sb.ToString();
+        }
+        private string GetSelectedItemsDisplayString(List<ListObject> loList)
+        {
+            StringBuilder sb = new StringBuilder();
+            for (int i = 0; i <= loList.Count - 1; i++)
+            {
+                ListObject lo = loList.ElementAt(i);
+                if (i < loList.Count - 1)
+                {
+                    sb.Append(lo.DisplayValue + ", ");
+                }
+                else
+                {
+                    sb.Append(lo.DisplayValue);
+                }
+            }
+            return sb.ToString();
+        }
+        
+        
+        private void LoadMultiSelectionParameterAndDisplayValues(DynamicParameter dp)
+        {
+            // this method loads a readonly/display-only listbox of items the user has selected from a larger list
+            StringBuilder sbParameterlist = new StringBuilder();
+            StringBuilder sbDisplayList = new StringBuilder();
+            List<ListObject> loList = dp.SelectedQueryDataListObjects;
+            if (dp.MultiSelectionDisplayListBox != null)  dp.MultiSelectionDisplayListBox.Items.Clear();
+
+            for (int i = 0; i <= loList.Count - 1; i++)
+            {
+                ListObject lo = loList.ElementAt(i);
+                if (dp.MultiSelectionDisplayListBox != null) dp.MultiSelectionDisplayListBox.Items.Add(lo);
+                if (i < loList.Count - 1)
+                {
+                    switch (dp.DataTypeID)
+                    {
+                        case ((int)Enums.DataTypes.Int):
+                            sbParameterlist.Append(lo.IDValue.ToString() + ",");
+                            break;
+
+                        default:
+                            sbParameterlist.Append(lo.DisplayValue + ",");
+                            break;
+                    }
+                    sbDisplayList.Append(lo.DisplayValue + ", ");
+                }
+                else
+                {
+                    switch (dp.DataTypeID)
+                    {
+                        case ((int)Enums.DataTypes.Int):
+                            sbParameterlist.Append(lo.IDValue.ToString());
+                            break;
+
+                        default:
+                            sbParameterlist.Append(lo.DisplayValue);
+                            break;
+                    }
+                    sbDisplayList.Append(lo.DisplayValue);
+                }
+            }
+            dp.ParameterValue = sbParameterlist.ToString();
+            dp.ParameterValueDisplayValue = sbDisplayList.ToString();
         }
 
-        #endregion  PARAMETER EVENT HANDLERS
+
+        #endregion
 
     }
 }
